@@ -23,8 +23,14 @@ final class Database
     {
         if (self::$config === null) {
             $candidates = [];
-            if (getenv('MCG_CONFIG_DIR') !== false) {
-                $candidates[] = rtrim(getenv('MCG_CONFIG_DIR'), '/\\') . '/database.php';
+            foreach (['MCG_CONFIG_DIR', 'REDIRECT_MCG_CONFIG_DIR', 'REDIRECT_REDIRECT_MCG_CONFIG_DIR'] as $key) {
+                $configDir = getenv($key);
+                if (($configDir === false || $configDir === '') && isset($_SERVER[$key])) {
+                    $configDir = $_SERVER[$key];
+                }
+                if (is_string($configDir) && trim($configDir) !== '') {
+                    $candidates[] = rtrim($configDir, '/\\') . '/database.php';
+                }
             }
             $here = \dirname(__DIR__);                     // .../backend
             $candidates[] = $here . '/config/database.php';                       // backend/config  (standard layout)
