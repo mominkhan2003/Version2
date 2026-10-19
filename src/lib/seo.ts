@@ -1,0 +1,3 @@
+export function pageHead(title: string, description: string) {
+  return { meta: [{ title: `${title} · Mensa Comunista Graz` }, { name: "description", content: description }, { property: "og:title", content: `${title} · Mensa Comunista Graz` }, { property: "og:description", content: description }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] };
+}

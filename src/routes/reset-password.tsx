@@ -1,0 +1,9 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { pageHead } from "@/lib/seo";
+import { useLang } from "@/lib/i18n";
+export const Route = createFileRoute("/reset-password")({head:()=>pageHead("Passwort zurücksetzen","Setze dein Passwort für das Mensa-Team zurück."),component:Reset});
+function Reset(){const {pick}=useLang();const [valid,setValid]=useState(false);const [password,setPassword]=useState("");const [message,setMessage]=useState("");const [busy,setBusy]=useState(false);useEffect(()=>{setValid(new URLSearchParams(window.location.hash.slice(1)).get("type")==="recovery");},[]);return <main className="grid min-h-screen place-items-center px-6"><form className="w-full max-w-sm space-y-5" onSubmit={async e=>{e.preventDefault();setBusy(true);const {error}=await supabase.auth.updateUser({password});setMessage(error?pick("Passwort konnte nicht geändert werden.","Could not change password."):pick("Passwort geändert.","Password changed."));setBusy(false);}}><h1 className="text-3xl">{pick("Neues Passwort","New password")}</h1>{valid?<><label className="block">{pick("Neues Passwort (mind. 8 Zeichen)","New password (at least 8 characters)")}<Input type="password" required minLength={8} value={password} onChange={e=>setPassword(e.target.value)} /></label><Button disabled={busy}>{pick("Passwort speichern","Save password")}</Button></>:<p>{pick("Bitte öffne den Link aus deiner E-Mail.","Please open the link from your email.")}</p>}<p role="status">{message}</p><Link to="/auth" className="block underline">{pick("Zur Anmeldung","Back to sign in")}</Link></form></main>;}
