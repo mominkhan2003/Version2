@@ -78,9 +78,13 @@ deployment instructions at its root. Never upload the repository root.
   checks the configured `MCG_CONFIG_DIR`, PHP's `$HOME`, and a private folder
   adjacent to the document root. Never put real credentials in the ZIP or
   under `public_html`.
-3. In phpMyAdmin, import `database/schema.sql`. Then import `database/seed.sql`
-  from your local project checkout; do **not** upload the seed file, which
-  contains imported planner data.
+3. For a **new, empty database only**, import `database/schema.sql`, then
+  `database/seed.sql` from your local project checkout. The schema file is the
+  canonical fresh-install schema, not an upgrade script; the seed contains
+  non-idempotent inserts and imported planner data. Never re-import either
+  file into an existing production database. Back up production data and use
+  reviewed, targeted migrations for upgrades. Do **not** upload the seed file
+  into the public document root.
 4. Select PHP 8.1 or newer in cPanel and verify the `pdo_mysql` extension is
   enabled.
 5. In cPanel Terminal, from the document root, run:
@@ -89,11 +93,14 @@ deployment instructions at its root. Never upload the repository root.
    php backend/tools/check_database.php
    ```
 
-   This reports whether PHP has PDO MySQL, whether the database connection
-   succeeds, and whether the homepage schema and seed rows are present. If it
-   reports a MySQL connection failure, check cPanel's exact host/port, prefixed
-   DB/user names, password, and grants. For other failures, inspect the cPanel
-   PHP error log; the browser intentionally receives only a generic error.
+   This checks private config loading, PDO MySQL, database connectivity,
+   required homepage tables and columns, settings and cache seed rows, then
+   executes the same German and English public homepage queries as the API.
+   It reports missing tables/columns or a failing query without printing
+   credentials or SQL. Detailed query errors are written to the PHP error log.
+   For connection failures, check cPanel's exact host/port, prefixed DB/user
+   names, password, and grants. The browser intentionally receives only a
+   generic error.
 6. Create the first administrator using your own email:
 
   ```sh

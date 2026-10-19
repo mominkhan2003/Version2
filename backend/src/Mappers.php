@@ -23,19 +23,19 @@ final class Mappers
     public static function publicData(string $lang = 'de'): array
     {
         [$sections, $lists, $stories, $events, $metrics, $counts, $finance, $settings, $instagram, $pages] = [
-            self::cmsSections($lang),
-            self::cmsLists($lang),
-            self::cmsStories($lang),
-            self::publicEvents($lang),
-            self::impactMetrics($lang),
-            self::eventCounts(),
-            self::publicFinances(),
-            self::settings($lang),
-            self::instagramTiles(),
-            self::pageTexts($lang),
+            self::publicStep('sections', static fn (): array => self::cmsSections($lang)),
+            self::publicStep('lists', static fn (): array => self::cmsLists($lang)),
+            self::publicStep('stories', static fn (): array => self::cmsStories($lang)),
+            self::publicStep('events', static fn (): array => self::publicEvents($lang)),
+            self::publicStep('metrics', static fn (): array => self::impactMetrics($lang)),
+            self::publicStep('event counts', static fn (): array => self::eventCounts()),
+            self::publicStep('finances', static fn (): array => self::publicFinances()),
+            self::publicStep('settings', static fn (): array => self::settings($lang)),
+            self::publicStep('Instagram tiles', static fn (): array => self::instagramTiles()),
+            self::publicStep('page texts', static fn (): array => self::pageTexts($lang)),
         ];
         return [
-            'version'  => Cache::version(),
+            'version'  => self::publicStep('cache version', static fn (): string => Cache::version()),
             'sections' => $sections,
             'lists'    => $lists,
             'stories'  => $stories,
@@ -47,6 +47,16 @@ final class Mappers
             'instagram' => $instagram,
             'pages'    => $pages,
         ];
+    }
+
+    private static function publicStep(string $name, callable $query): mixed
+    {
+        try {
+            return $query();
+        } catch (\Throwable $e) {
+            error_log('[mcg] public data step failed (' . $name . '): ' . $e->getMessage());
+            throw $e;
+        }
     }
 
     /** Sections with all translatable copy + images + links (single round trips). @return list<array<string,mixed>> */

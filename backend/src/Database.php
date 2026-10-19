@@ -98,7 +98,7 @@ final class Database
             ]);
         } catch (PDOException $e) {
             error_log('[mcg] DB connect failed: ' . $e->getMessage()); // detail only in logs, never in responses
-            throw new RuntimeException('Database is temporarily unavailable.');
+            throw new RuntimeException('Database is temporarily unavailable.', 0, $e);
         }
         return self::$pdo;
     }

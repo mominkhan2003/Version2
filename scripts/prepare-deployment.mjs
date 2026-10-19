@@ -61,9 +61,12 @@ DATABASE CONFIGURATION
    cPanel host, database, user, password, port, public HTTPS URL, and a
    writable storage path outside the web root. Never put real credentials in
    this package or in a web-accessible directory.
-3. In phpMyAdmin, import database/schema.sql, then import the private
-   database/seed.sql from your local repository. Do not upload seed.sql into
-   the public document root.
+3. Only for a new, empty database, import database/schema.sql followed by
+   database/seed.sql from your local repository. Both files are fresh-install
+   only; seed.sql contains non-idempotent inserts and imported planner data.
+   Never re-import them into production. Back up production data and use
+   reviewed migrations for upgrades. Never upload seed.sql into the document
+   root.
 4. Set cPanel PHP to 8.1 or newer and enable PDO MySQL (pdo_mysql).
 5. In cPanel Terminal from the document root run:
    php backend/tools/check_database.php

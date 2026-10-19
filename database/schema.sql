@@ -1,7 +1,10 @@
 -- =====================================================================
 -- MENSA COMUNISTA GRAZ — MySQL/MariaDB schema (3NF)
 -- Charset utf8mb4, engine InnoDB. Canonical fresh-install schema.
--- Import order: database/schema.sql  →  database/seed.sql (optional demo)
+-- FRESH DATABASES ONLY: this is not an upgrade script and must not be
+-- re-imported into an existing production database. Back up and use reviewed
+-- migrations for changes to an existing schema.
+-- Import order on a fresh database: database/schema.sql → database/seed.sql
 -- =====================================================================
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;

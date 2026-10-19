@@ -7,6 +7,8 @@
 -- requests and a demo social post.
 -- NOTE: no user accounts are seeded here. Create the first admin with
 --       `php backend/tools/make_admin.php` after importing.
+-- FRESH DATABASES ONLY: these INSERT statements are not idempotent. Import
+-- only after schema.sql into a new database; never re-import into production.
 -- =====================================================================
 SET NAMES utf8mb4;
 

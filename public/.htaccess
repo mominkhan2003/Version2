@@ -7,6 +7,7 @@ RewriteRule ^api/([a-z_]+\.php)$ backend/api/$1 [END,QSA]
 # The backend code is only meant to be reached through the API rewrite above.
 RewriteRule ^backend(?:/|$) - [F,END]
 RewriteRule ^database(?:/|$) - [F,END]
+RewriteRule ^database\.example\.php$ - [F,END]
 
 # Keep real files/directories and send client-side routes to the SPA entrypoint.
 RewriteCond %{REQUEST_FILENAME} -f [OR]
