@@ -10,6 +10,11 @@ require __DIR__ . '/../src/bootstrap_cli.php';
 
 use Mcg\Database;
 
+if (!extension_loaded('pdo_mysql')) {
+    fwrite(STDERR, "PHP extension pdo_mysql is not enabled. Enable it for the selected cPanel PHP version.\n");
+    exit(1);
+}
+
 $requiredTables = [
     'homepage_cache',
     'homepage_sections',
@@ -40,12 +45,22 @@ $requiredTables = [
 ];
 
 try {
+    Database::config();
+    Database::conn();
     $tables = array_map(
         static fn (array $row): string => (string) reset($row),
         Database::all('SHOW TABLES')
     );
 } catch (Throwable $e) {
-    fwrite(STDERR, "Database configuration or connection failed. Check the private database.php and the PHP error log.\n");
+    if ($e instanceof PDOException || $e->getPrevious() instanceof PDOException) {
+        $pdoError = $e instanceof PDOException ? $e : $e->getPrevious();
+        $state = (string) ($pdoError->errorInfo[0] ?? $pdoError->getCode());
+        $driverCode = $pdoError->errorInfo[1] ?? 'unknown';
+        fwrite(STDERR, "MySQL connection failed (SQLSTATE $state, driver code $driverCode). Verify the cPanel hostname, database/user prefixes, password, port, and user privileges.\n");
+    } else {
+        fwrite(STDERR, $e->getMessage() . "\n");
+    }
+    fwrite(STDERR, "If those settings are correct, check the cPanel PHP error log for the detailed server-side error.\n");
     exit(1);
 }
 
@@ -59,6 +74,11 @@ if ($missing !== []) {
 $version = Database::scalar('SELECT version FROM homepage_cache WHERE id = 1');
 if ($version === false) {
     fwrite(STDERR, "Schema is present, but homepage seed data is missing. Import database/seed.sql.\n");
+    exit(3);
+}
+
+if (Database::scalar('SELECT COUNT(*) FROM site_settings WHERE id = 1') === 0) {
+    fwrite(STDERR, "Database schema is present, but site settings are not seeded. Import database/seed.sql.\n");
     exit(3);
 }
 

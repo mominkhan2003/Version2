@@ -14,64 +14,102 @@ Continue developing this project in the [Lovable editor](https://lovable.dev/pro
 
 ## Development
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+Local development requires Node.js, npm, and PHP 8.1+ with PDO MySQL. Use a
+private MySQL config in `backend/config/database.php` (ignored by Git), or set
+`MCG_CONFIG_DIR` to a private directory containing `database.php`. Start the
+PHP API and Vite frontend in separate terminals:
 
 ```sh
 git clone <this-repository-url>
 cd <repository-name>
 npm i
+npm run dev:api
+```
+
+```sh
 npm run dev
 ```
 
+The Vite server proxies `/api/*` to the PHP server on port 8787.
+
+To build two separate preview packages:
+
+```sh
+npm run build:all
+```
+
+This creates `dist-namecheap/` and `dist-namecheap.zip` for cPanel, plus
+`dist-local/` and `dist-local.zip` for local PHP preview. `dist.zip` is a
+backwards-compatible copy of the Namecheap ZIP. Each ZIP has `index.html` at
+its root. The local prebuilt package runs with:
+
+```sh
+php -S 127.0.0.1:8080 -t dist-local dist-local/backend/api/server.php
+```
+
+Then open <http://127.0.0.1:8080>.
+
+To build either package separately, run `npm run build:namecheap` or
+`npm run build:local`.
+
 ## Deploy to Namecheap shared hosting
 
-This project is a Vite-built React site with a PHP/MySQL API. Namecheap shared
-hosting serves the generated static site and runs the PHP endpoints; Node.js is
-needed to build the site, not to keep a server process running. The production
-build creates `dist/index.html`, copies the PHP API into `dist/backend/`, and
-includes Apache rules for client-side routes and API requests.
+Namecheap shared hosting serves the generated static frontend and runs the PHP
+API; Node.js is only needed to build the site. Build the upload package with:
 
-The previously tracked local database configuration contained credentials.
-Rotate that database user's password in cPanel before using it on the live
-site, and update the private `database.php` file with the new password.
+```sh
+npm run build:namecheap
+```
 
-1. In Namecheap cPanel, create a MySQL database and user, then grant the user
-   all privileges on that database.
-2. Create a private directory outside the domain's document root (for example,
-   `/home/CPANEL_USER/mcg-private`). Copy
-   `backend/config/database.example.php` there as `database.php` and fill in
-   the cPanel database values, the site's HTTPS URL, and a writable absolute
-   path outside the document root for uploaded media. The backend searches
-   `$HOME/mcg-private/database.php` automatically. If PHP does not expose `$HOME`
-   on your account, add `SetEnv MCG_CONFIG_DIR /home/CPANEL_USER/mcg-private`
-   to `public/.htaccess`, replacing `CPANEL_USER` with your cPanel username.
-3. Import `database/schema.sql` and then `database/seed.sql` using cPanel
-   phpMyAdmin. The seed file contains the initial site content but no user
-   accounts.
-4. Install the project dependencies and create the upload-ready build:
+Upload the **contents of `dist-namecheap.zip`** to the domain's document root,
+commonly `public_html/`. The archive contains `index.html`, assets, `.htaccess`,
+the PHP API, a safe database config template, database schema, and these
+deployment instructions at its root. Never upload the repository root.
+
+### cPanel setup
+
+1. In cPanel, create a MySQL database and user, and grant that user all
+   privileges on the database. Use the exact host, port, and account-prefixed
+   database/user names shown by cPanel.
+2. Create `$HOME/mcg-private` **outside** the document root. Copy
+  `database.example.php` from the package to
+  `$HOME/mcg-private/database.php`, then fill in the database details, HTTPS
+  site URL, and a writable media directory outside the web root. The backend
+  checks the configured `MCG_CONFIG_DIR`, PHP's `$HOME`, and a private folder
+  adjacent to the document root. Never put real credentials in the ZIP or
+  under `public_html`.
+3. In phpMyAdmin, import `database/schema.sql`. Then import `database/seed.sql`
+  from your local project checkout; do **not** upload the seed file, which
+  contains imported planner data.
+4. Select PHP 8.1 or newer in cPanel and verify the `pdo_mysql` extension is
+  enabled.
+5. In cPanel Terminal, from the document root, run:
 
    ```sh
-   npm install
-   npm run build:namecheap
+   php backend/tools/check_database.php
    ```
 
-   The PHP API loads database configuration from the private directory; never
-   put database credentials in the frontend.
-5. Upload the **contents** of `dist/` (including `.htaccess` and `backend/`) to
-   the domain's document root, commonly `public_html/`. Do not upload the
-   repository root as the website.
-6. In cPanel Terminal, run
-   `php backend/tools/check_database.php` from the uploaded document root. It
-   checks the private config, database connection, required homepage tables,
-   and seed version without printing credentials.
-7. Create your first admin with
-   `php backend/tools/make_admin.php admin@your-domain.tld admin`. The script
-   prints a randomly generated temporary password once; save it securely and
-   change it after signing in. Use your own email in place of the example.
-   Check that the selected PHP version has PDO MySQL enabled.
+   This reports whether PHP has PDO MySQL, whether the database connection
+   succeeds, and whether the homepage schema and seed rows are present. If it
+   reports a MySQL connection failure, check cPanel's exact host/port, prefixed
+   DB/user names, password, and grants. For other failures, inspect the cPanel
+   PHP error log; the browser intentionally receives only a generic error.
+6. Create the first administrator using your own email:
 
-To publish later source changes, edit the project, run `npm run build:namecheap`
-again, and upload the updated `dist/` contents. Homepage content managed in the
-admin area is saved in MySQL and can be changed there without rebuilding the
-frontend. The local `backend/config/database.php` is deliberately excluded
-from deployment builds; never upload or commit local database credentials.
+  ```sh
+  php backend/tools/make_admin.php admin@your-domain.tld admin
+  ```
+
+  A new account receives a randomly generated temporary password printed once
+  in the terminal. Save it securely and change it after signing in.
+
+### Credential handling
+
+The previous tracked database config contained credentials. That file has been
+removed from the Git index and added to `.gitignore`, but prior published Git
+history may still contain the old value. Rotate that database user's password
+in cPanel and update the private `database.php`; do not reuse the old password.
+
+Changes to public content managed by the admin interface are stored in MySQL
+and do not require a frontend rebuild. For code changes, rebuild and upload the
+contents of the new Namecheap ZIP.

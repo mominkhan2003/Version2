@@ -5,8 +5,8 @@ declare(strict_types=1);
  * Router for the PHP built-in development server:
  *   php -S 127.0.0.1:8787 -t backend api/server.php
  *
- * Routes only /api/*.php; everything else 404s. In production on cPanel,
- * Apache + .htaccess do this job (see DEPLOYMENT.md).
+ * Routes PHP API requests and serves the SPA fallback for local production
+ * previews. In production on cPanel, Apache + .htaccess handle these routes.
  */
 
 if (PHP_SAPI !== 'cli-server') {
@@ -26,6 +26,30 @@ if (preg_match('#^/api/([a-z_]{1,40})\.php$#', $path, $m) === 1) {
     header('Content-Type: application/json');
     echo json_encode(['ok' => false, 'error' => 'Unknown endpoint.']);
     return true;
+}
+
+if (preg_match('#^/backend(?:/|$)#', $path) === 1) {
+    http_response_code(404);
+    return true;
+}
+
+$documentRoot = realpath((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''));
+if ($documentRoot !== false) {
+    $requestedFile = realpath($documentRoot . DIRECTORY_SEPARATOR . ltrim(rawurldecode($path), '/\\'));
+    if (
+        $requestedFile !== false
+        && is_file($requestedFile)
+        && str_starts_with($requestedFile, $documentRoot . DIRECTORY_SEPARATOR)
+    ) {
+        return false;
+    }
+
+    $indexFile = $documentRoot . DIRECTORY_SEPARATOR . 'index.html';
+    if (is_file($indexFile)) {
+        header('Content-Type: text/html; charset=utf-8');
+        readfile($indexFile);
+        return true;
+    }
 }
 
 if ($path === '/' || $path === '/index.php') {

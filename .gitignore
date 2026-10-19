@@ -9,6 +9,11 @@ lerna-debug.log*
 
 node_modules
 dist
+dist-namecheap
+dist-local
+dist-namecheap.zip
+dist-local.zip
+dist.zip
 dist-ssr
 .output
 .vinxi

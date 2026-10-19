@@ -281,7 +281,20 @@ final class Mappers
     {
         $s = Database::one('SELECT * FROM site_settings WHERE id = 1');
         if ($s === null) {
-            return [];
+            return [
+                'request_enabled' => false,
+                'bank_enabled' => false,
+                'bank_holder' => null,
+                'bank_iban' => null,
+                'bank_bic' => null,
+                'bank_name' => null,
+                'bank_reference' => null,
+                'bank_instructions' => null,
+                'contact_email' => null,
+                'contact_address' => null,
+                'instagram_handle' => 'mensacomunistagraz',
+                'instagram_posts' => [],
+            ];
         }
         $instruction = Database::one(
             'SELECT instructions FROM site_bank_instructions WHERE bank_id = 1 AND lang = :l',

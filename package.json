@@ -5,8 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
+    "dev:api": "php -S 127.0.0.1:8787 -t backend backend/api/server.php",
     "build": "vite build",
-    "build:namecheap": "vite build && node scripts/prepare-namecheap-deploy.mjs",
+    "build:namecheap": "vite build && node scripts/prepare-deployment.mjs namecheap && node scripts/package-deployment.mjs namecheap",
+    "build:local": "vite build && node scripts/prepare-deployment.mjs local && node scripts/package-deployment.mjs local",
+    "build:all": "npm run build:namecheap && npm run build:local",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",

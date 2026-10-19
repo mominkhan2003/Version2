@@ -8,9 +8,6 @@ declare(strict_types=1);
 require __DIR__ . '/bootstrap.php';
 
 use Mcg\Mappers;
-use Mcg\Response;
-use Mcg\Validate;
-
 $lang = in_array(($_GET['lang'] ?? 'de'), ['de', 'en'], true) ? ($_GET['lang'] ?? 'de') : 'de';
 $payload = Mappers::publicData($lang);
 mcg_public_response($payload, $lang);

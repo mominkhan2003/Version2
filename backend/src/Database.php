@@ -17,7 +17,8 @@ final class Database
      * Configuration search order:
      *  1. MCG_CONFIG_DIR or its Apache REDIRECT_ variants
      *  2. $HOME/mcg-private/database.php (Namecheap shared hosting)
-     *  3. backend/config/database.php (default layout)
+     *  3. a private sibling of DOCUMENT_ROOT (Namecheap shared hosting)
+     *  4. backend/config/database.php (local development only)
      * database.example.php is never loaded.
      */
     public static function config(): array
@@ -40,6 +41,10 @@ final class Database
             if (is_string($home) && trim($home) !== '') {
                 $candidates[] = rtrim($home, '/\\') . '/mcg-private/database.php';
             }
+            $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? '';
+            if (is_string($documentRoot) && trim($documentRoot) !== '') {
+                $candidates[] = \dirname(rtrim($documentRoot, '/\\')) . '/mcg-private/database.php';
+            }
             $here = \dirname(__DIR__);                     // .../backend
             $candidates[] = $here . '/config/database.php';                       // backend/config  (standard layout)
             $candidates[] = \dirname($here) . '/backend/config/database.php';     // public root alternative
@@ -55,8 +60,14 @@ final class Database
             }
             if (self::$config === null) {
                 throw new RuntimeException(
-                    'Database configuration missing. Copy backend/config/database.example.php to database.php outside public_html.'
+                    'Database configuration missing. Create mcg-private/database.php outside the document root or set MCG_CONFIG_DIR.'
                 );
+            }
+
+            foreach (['host', 'database', 'username', 'password'] as $key) {
+                if (!array_key_exists($key, self::$config) || !is_scalar(self::$config[$key])) {
+                    throw new RuntimeException("Database configuration is missing a valid '$key' value.");
+                }
             }
         }
         return self::$config;
@@ -67,6 +78,9 @@ final class Database
     {
         if (self::$pdo !== null) {
             return self::$pdo;
+        }
+        if (!extension_loaded('pdo_mysql')) {
+            throw new RuntimeException('The PHP pdo_mysql extension is not enabled.');
         }
         $cfg = self::config();
         $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=%s',
