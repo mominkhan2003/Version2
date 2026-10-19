@@ -31,6 +31,10 @@ needed to build the site, not to keep a server process running. The production
 build creates `dist/index.html`, copies the PHP API into `dist/backend/`, and
 includes Apache rules for client-side routes and API requests.
 
+The previously tracked local database configuration contained credentials.
+Rotate that database user's password in cPanel before using it on the live
+site, and update the private `database.php` file with the new password.
+
 1. In Namecheap cPanel, create a MySQL database and user, then grant the user
    all privileges on that database.
 2. Create a private directory outside the domain's document root (for example,
@@ -56,9 +60,15 @@ includes Apache rules for client-side routes and API requests.
 5. Upload the **contents** of `dist/` (including `.htaccess` and `backend/`) to
    the domain's document root, commonly `public_html/`. Do not upload the
    repository root as the website.
-6. In cPanel Terminal, run `php backend/tools/make_admin.php` from the uploaded
-   document root to create the first administrator. Check that the selected
-   PHP version has PDO MySQL enabled.
+6. In cPanel Terminal, run
+   `php backend/tools/check_database.php` from the uploaded document root. It
+   checks the private config, database connection, required homepage tables,
+   and seed version without printing credentials.
+7. Create your first admin with
+   `php backend/tools/make_admin.php admin@your-domain.tld admin`. The script
+   prints a randomly generated temporary password once; save it securely and
+   change it after signing in. Use your own email in place of the example.
+   Check that the selected PHP version has PDO MySQL enabled.
 
 To publish later source changes, edit the project, run `npm run build:namecheap`
 again, and upload the updated `dist/` contents. Homepage content managed in the

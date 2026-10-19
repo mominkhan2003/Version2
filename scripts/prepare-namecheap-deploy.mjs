@@ -20,7 +20,7 @@ await copyFile(shellFile, path.join(dist, "index.html"));
 const backendDist = path.join(dist, "backend");
 await mkdir(backendDist, { recursive: true });
 
-for (const directory of ["api", "src", "tools", "config"]) {
+for (const directory of ["api", "src", "tools"]) {
   await cp(
     path.join(projectRoot, "backend", directory),
     path.join(backendDist, directory),
