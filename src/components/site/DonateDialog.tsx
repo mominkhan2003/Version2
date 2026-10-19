@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { CheckCircle2, Landmark, Loader2, Send } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPost, ApiError } from "@/lib/api";
+import { getPublicData } from "@/lib/data.functions";
 import { useLang } from "@/lib/i18n";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -14,13 +15,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Star } from "@/components/brand";
 
 export function useSettings() {
+  const { lang } = useLang();
   return useQuery({
-    queryKey: ["site_settings"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("site_settings").select("*").eq("id", 1).single();
-      if (error) throw error;
-      return data;
-    },
+    queryKey: ["public", lang],
+    queryFn: () => getPublicData(lang),
+    select: (d) => d.settings,
   });
 }
 
@@ -82,13 +81,14 @@ export function DonateDialog({ children }: { children: ReactNode }) {
     }
     setErrors({});
     setBusy(true);
-    const { error } = await supabase.from("donation_requests").insert({ ...parsed.data, phone: parsed.data.phone ?? null, message: parsed.data.message ?? null });
-    setBusy(false);
-    if (error) {
-      toast.error(pick("Senden fehlgeschlagen. Bitte später erneut versuchen.", "Sending failed. Please try again later."));
-      return;
+    try {
+      await apiPost("/api/donations.php", { action: "new_request", ...parsed.data, phone: parsed.data.phone ?? null, message: parsed.data.message ?? null });
+      setDone(true);
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : pick("Senden fehlgeschlagen. Bitte später erneut versuchen.", "Sending failed. Please try again later."));
+    } finally {
+      setBusy(false);
     }
-    setDone(true);
   }
 
   return (
