@@ -1,0 +1,17 @@
+Options -Indexes
+RewriteEngine On
+
+# Point to a private folder outside public_html that contains database.php.
+SetEnv MCG_CONFIG_DIR /home/CPANEL_USER/mcg-private
+
+# Route the app's /api/*.php URLs to the PHP backend shipped with the build.
+RewriteRule ^api/([a-z_]+\.php)$ backend/api/$1 [END,QSA]
+
+# The backend code is only meant to be reached through the API rewrite above.
+RewriteRule ^backend(?:/|$) - [F,END]
+
+# Keep real files/directories and send client-side routes to the SPA entrypoint.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [END]
+RewriteRule ^ index.html [END]
