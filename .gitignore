@@ -17,7 +17,7 @@ dist-ssr
 *.local
 
 # Backend secrets (never commit)
-backend/config/database.php
+# backend/config/database.php
 backend/storage/*
 !backend/storage/.gitkeep
 
