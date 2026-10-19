@@ -1,4 +1,4 @@
-import { access, copyFile, cp, mkdir } from "node:fs/promises";
+import { access, copyFile, cp, mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -13,6 +13,7 @@ try {
   throw new Error("Vite did not generate .output/public/_shell.html; Namecheap deployment was not prepared.");
 }
 
+await rm(dist, { recursive: true, force: true });
 await cp(publicBuild, dist, { recursive: true });
 await copyFile(shellFile, path.join(dist, "index.html"));
 
