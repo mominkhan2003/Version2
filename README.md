@@ -37,9 +37,10 @@ includes Apache rules for client-side routes and API requests.
    `/home/CPANEL_USER/mcg-private`). Copy
    `backend/config/database.example.php` there as `database.php` and fill in
    the cPanel database values, the site's HTTPS URL, and a writable absolute
-   path outside the document root for uploaded media. In `public/.htaccess`,
-   replace `CPANEL_USER` in the `SetEnv MCG_CONFIG_DIR` line with your actual
-   cPanel username. This source file is included in each build.
+   path outside the document root for uploaded media. The backend searches
+   `$HOME/mcg-private/database.php` automatically. If PHP does not expose `$HOME`
+   on your account, add `SetEnv MCG_CONFIG_DIR /home/CPANEL_USER/mcg-private`
+   to `public/.htaccess`, replacing `CPANEL_USER` with your cPanel username.
 3. Import `database/schema.sql` and then `database/seed.sql` using cPanel
    phpMyAdmin. The seed file contains the initial site content but no user
    accounts.

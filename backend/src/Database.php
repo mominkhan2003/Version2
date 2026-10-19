@@ -15,8 +15,9 @@ final class Database
 
     /**
      * Configuration search order:
-     *  1. Environment variable MCG_CONFIG_DIR (absolute dir that contains database.php)
-     *  2. backend/config/database.php  (default layout)
+     *  1. MCG_CONFIG_DIR or its Apache REDIRECT_ variants
+     *  2. $HOME/mcg-private/database.php (Namecheap shared hosting)
+     *  3. backend/config/database.php (default layout)
      * database.example.php is never loaded.
      */
     public static function config(): array
@@ -31,6 +32,13 @@ final class Database
                 if (is_string($configDir) && trim($configDir) !== '') {
                     $candidates[] = rtrim($configDir, '/\\') . '/database.php';
                 }
+            }
+            $home = getenv('HOME');
+            if (($home === false || $home === '') && isset($_SERVER['HOME'])) {
+                $home = $_SERVER['HOME'];
+            }
+            if (is_string($home) && trim($home) !== '') {
+                $candidates[] = rtrim($home, '/\\') . '/mcg-private/database.php';
             }
             $here = \dirname(__DIR__);                     // .../backend
             $candidates[] = $here . '/config/database.php';                       // backend/config  (standard layout)
