@@ -8,10 +8,11 @@ declare(strict_types=1);
  */
 return [
     // Namecheap cPanel: cPanel → MySQL Databases shows these exact names.
-    'host'        => 'localhost',
-    'database'    => 'YOUR_CPANEL_DATABASE_NAME',
-    'username'    => 'YOUR_CPANEL_DATABASE_USER',
-    'password'    => 'YOUR_DATABASE_PASSWORD',
+    'host'        => 'premium281.web-hosting.com',
+    'port'        => '3307',
+    'database'    => 'prosdfwo_mcg',
+    'username'    => 'prosdfwo_mcg',
+    'password'    => 'MensaGraz@2026',
     'charset'     => 'utf8mb4',
 
     // Absolute path for uploaded media (outside the webroot, e.g.
